@@ -1,0 +1,163 @@
+import { Button, VerticalBox, ComboBox, HorizontalBox, ScrollView } from "std-widgets.slint";
+
+
+struct TileData {
+    selected: bool,
+    tile_timezone: string,
+    background: color,
+    offset: int,
+    index: int,
+}
+
+component TimeTile inherits Rectangle {
+    in property <string> text: "null";
+    in-out property <string> your_time: "00:00";
+    in property <string> something: "null";
+    in property <color> tile_color: #222222;
+    in-out property <string> your_date: "";
+    in-out property <int> index: 0;
+
+    
+    background:  tile_color;
+    width: 230px;
+    height: 700px;
+
+    
+
+    VerticalBox {
+        Text {
+            font-size: 20px;
+            text: text;
+        }
+        Text {
+            font-size: 20px;
+            text: root.your_time; //root.timezone +" Time: " + root.your_time;
+        }
+        Text {
+            font-size: 20px;
+            text: root.your_date;
+        }
+    }
+            
+}
+
+export component AppWindow inherits Window {
+    width: 690px + 40px;
+    height: 250px * 2;
+    title: @tr("Timezone viewer"); 
+    icon: @image-url("icons/kalash_is_bald.jpg");
+    in-out property <string> timezone: "null";
+    in-out property <int> selected: 11;
+    callback updatePosition();
+    in property <[TileData]> time_tiles: [
+        {index: 0, tile_timezone: "UTC-11"},
+        {index: 1, tile_timezone: "UTC-10"},
+        {index: 2, tile_timezone: "UTC-9"},
+        {index: 3, tile_timezone: "UTC-8 + PST"},
+        {index: 4, tile_timezone: "UTC-7"},
+        {index: 5, tile_timezone: "UTC-6"},
+        {index: 6, tile_timezone: "UTC-5 + EST"},
+        {index: 7, tile_timezone: "UTC-4 + AST + EDT"},
+        {index: 8, tile_timezone: "UTC-3 + ADT + FKST"},
+        {index: 9, tile_timezone: "UTC-2"},
+        {index: 10, tile_timezone: "UTC-1"},
+        {index: 11, tile_timezone: "UTC + GMT"},
+        {index: 12, tile_timezone: "UTC+1 + BST"},
+        {index: 13, tile_timezone: "UTC+2 + CEST"},
+        {index: 14, tile_timezone: "UTC+3"},
+        {index: 15, tile_timezone: "UTC+4"},
+        {index: 16, tile_timezone: "UTC+5"},
+        {index: 17, tile_timezone: "UTC+6 + IOT"},
+        {index: 18, tile_timezone: "UTC+7"},
+        {index: 19, tile_timezone: "UTC+8"},
+        {index: 20, tile_timezone: "UTC+9"},
+        {index: 21, tile_timezone: "UTC+10"},
+        {index: 22, tile_timezone: "UTC+11"},
+        {index: 23, tile_timezone: "UTC+12"},
+    ];
+
+    //callback request-increase-value();
+    in-out property <string> your_time: "00:00";
+    in-out property <[string]> all_times: [];
+    in-out property <[string]> all_dates: [];
+    callback request_timezone(string);
+    //callback request-time-value();
+    callback scrolled <=> touch-area.scroll-event;
+    in-out property <color> column_color: #222222; 
+    callback updateBackground(color, color, color) -> color;
+    callback clicked <=> touch-area.clicked;
+    in-out property <float> integer: 0.0;
+
+    
+    touch-area := TouchArea {}
+
+
+        
+        HorizontalBox { 
+            Text {
+                text: "Timezone: ";
+                font-size: 20px;
+                height: root.height / 2;
+            }
+            ComboBox {
+                width: 100px;
+                height: 50px;
+                model: ["UTC-11", "UTC-10", "UTC-9", "UTC-8", "UTC-7", "UTC-6", "UTC-5", "UTC-4", "UTC-3", "UTC-2", "UTC-1", "UTC", "UTC+1", "UTC+2", "UTC+3", "UTC+4", "UTC+5", "UTC+6", "UTC+7", "UTC+8", "UTC+9", "UTC+10", "UTC+11", "UTC+12"];
+                current-value: root.timezone;
+                selected => {
+                    root.request-timezone(self.current-value);
+                    root.selected = self.current-index;
+                    updatePosition()
+                }
+            }
+        }
+        HorizontalBox {
+            width: 690px;
+            height: 200px;
+            x: integer * 1px;
+            spacing: 10px;
+
+            animate x {
+                duration: 400ms;
+                easing: ease-out;
+            }
+        for tile[i] in time_tiles : TimeTile {
+            width: 230px;
+            height: 150px;   
+            text: tile.tile_timezone;
+            in property <int> newindex: i;
+            ta := TouchArea {
+                clicked => {
+                    active = !active;
+                }
+            }
+            property <bool> active: true;
+            states [
+
+                on-hover when (tile.index != root.selected) && ta.has-hover: {
+        
+                    background: #757775;
+                }
+                active when (tile.index == root.selected) && !ta.has-hover: {
+                    background: #2c8149;
+                }
+                active when (tile.index == root.selected) && ta.has-hover: {
+                    background: #1fc556;
+                }
+        
+               // if (i == root.selected) : TimeTile {
+                //    tile_color: #2c8149;
+                //}
+        
+            ]
+
+            your_time: root.all_times[i];
+            your_date: root.all_dates[i];
+
+        }   
+    }
+
+    
+
+
+}
